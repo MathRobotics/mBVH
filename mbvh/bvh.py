@@ -2,16 +2,20 @@ import re
 import numpy as np
 
 class BvhNode:
-  def __init__(self, name, type, id, offset=None, channels=None, parent=None):
+  def __init__(self, name, type, id, dof_index, offset=None, channels=None, parent=None):
     self.name = name
     self.type = type
     self.id = id
+    self.dof_index = dof_index
     self.offset = offset
     self.channels = channels
     self.parent = parent
     self.children = []
     if self.parent:
         self.parent.add_child(self)
+        
+    if self.channels:
+      self.dof = len(self.channels)
     
   def add_child(self, node):
     node.parent = self
@@ -43,11 +47,12 @@ class Bvh:
     node = None
     joint_type = None
     joint_name = None
-    offset = None
-    channel = None
-    frames = np.array([])
     p_id = -1
     id = 0
+    dof_index = 0
+    offset = None
+    channels = None
+    frames = np.array([])
     for item in text:
       if frame_flag[0] and frame_flag[1]:
         if not( len(frames) > 0 ):
@@ -57,19 +62,21 @@ class Bvh:
         continue
       key = item[0]
       if key == '{':
+        dof = len(channels)
         if p_id >= 0:
-          node = BvhNode(joint_name, joint_type, id, offset, channel, node_list[p_id])
+          node = BvhNode(joint_name, joint_type, id, dof_index, offset, channels, node_list[p_id])
         else:
-          node = BvhNode(joint_name, joint_type, id, offset, channel)
+          node = BvhNode(joint_name, joint_type, id, dof_index, offset, channels)
         node_list.append(node)
         p_id = id
         id = id + 1
+        dof_index = dof_index + dof
       elif key == '}':
         p_id = p_id - 1
       elif key == 'OFFSET':
         offset = item[1:]
       elif key == 'CHANNELS':
-        channel = item[1:]
+        channels = item[1:]
       elif key == 'ROOT' or key == 'JOINT' or key == 'End':
         joint_type = key
         joint_name = item[1]
@@ -82,3 +89,12 @@ class Bvh:
         frame_flag[1] = True
         
     return Bvh(node_list, frame_num, sampling_time, frames)
+  
+  def get_joint(self, joint_name):
+    for n in self.node_list:
+      if n.name == joint_name:
+        return n
+      
+  def get_joint_frame(self, joint_name, frame_index):
+    joint = self.get_joint(joint_name)
+    return self.frame[frame_index][self.dof_index:self.dof_index+len(joint.channels)]
