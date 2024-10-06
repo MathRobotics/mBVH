@@ -106,3 +106,28 @@ class Bvh:
   def get_joint_frame(self, node, frame_index):
     return self.frame[frame_index][self.dof_index:self.dof_index+len(node.channels)]
 
+  def calc_joint_rel_frame(self, node, frame_index):
+    frame_vec = self.frame[frame_index][self.dof_index:self.dof_index+len(node.channels)]
+
+    rel_pos = np.array(node.offset)
+    rel_rot = np.identity(3)
+
+    for i in range(node.dof):
+      if node.channels[i] == 'Xposition':
+        rel_pos[0] = frame_vec[i]
+      elif node.channels[i] == 'Yposition':
+        rel_pos[1] = frame_vec[i]
+      elif node.channels[i] == 'Zposition':
+        rel_pos[2] = frame_vec[i]
+      elif node.channels[i] == 'Xrotation':
+        rel_rot = mr.euler_x(frame_vec[i]) @ rel_rot
+      elif node.channels[i] == 'Yrotation':
+        rel_rot = mr.euler_y(frame_vec[i]) @ rel_rot
+      elif node.channels[i] == 'Zrotation':
+        rel_rot = mr.euler_z(frame_vec[i]) @ rel_rot
+    
+    rel_frame = np.identity(4)
+    rel_frame[0:3,3] = rel_pos
+    rel_frame[0:3,0:3] = rel_rot
+    
+    return rel_frame
