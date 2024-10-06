@@ -96,6 +96,9 @@ class Bvh:
       if n.name == joint_name:
         return n
       
-  def get_joint_frame(self, joint_name, frame_index):
-    joint = self.get_joint(joint_name)
-    return self.frame[frame_index][self.dof_index:self.dof_index+len(joint.channels)]
+  def get_joint_index(self, joint_name):
+    index = 0
+    for n in self.node_list:
+      if n.name == joint_name:
+        return n
+      index = index + 1
