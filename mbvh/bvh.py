@@ -12,10 +12,12 @@ class BvhNode:
     self.parent = parent
     self.children = []
     if self.parent:
-        self.parent.add_child(self)
+      self.parent.add_child(self)
         
     if self.channels:
       self.dof = len(self.channels)
+    else:
+      self.dof = 0
     
   def add_child(self, node):
     node.parent = self
