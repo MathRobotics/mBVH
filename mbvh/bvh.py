@@ -125,10 +125,10 @@ class Bvh:
       index = index + 1
       
   def get_joint_frame(self, node, frame_index):
-    return self.frame[frame_index][self.dof_index:self.dof_index+len(node.channels)]
+    return self.frames[frame_index][node.dof_index:node.dof_index+len(node.channels)]
 
   def calc_joint_rel_frame(self, node, frame_index):
-    frame_vec = self.frame[frame_index][self.dof_index:self.dof_index+len(node.channels)]
+    frame_vec = self.frames[frame_index][node.dof_index:node.dof_index+len(node.channels)]
 
     rel_pos = np.array(node.offset)
     rel_rot = np.identity(3)
