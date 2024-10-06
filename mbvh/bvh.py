@@ -102,3 +102,7 @@ class Bvh:
       if n.name == joint_name:
         return n
       index = index + 1
+      
+  def get_joint_frame(self, node, frame_index):
+    return self.frame[frame_index][self.dof_index:self.dof_index+len(node.channels)]
+
