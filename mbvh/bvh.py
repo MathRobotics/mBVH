@@ -1,6 +1,8 @@
 import re
 import numpy as np
 
+import mathrobo as mr
+
 class BvhNode:
   def __init__(self, name, type, id, dof_index, offset=None, channels=None, parent=None):
     self.name = name
