@@ -90,7 +90,6 @@ class Bvh:
           node_init_flag = True
         if parent:
           parent = node_list[parent.id-1]
-          print(parent.id)
         node_start_flag = False
       elif key == 'OFFSET':
         offset = np.array(item[1:], dtype='float32')
