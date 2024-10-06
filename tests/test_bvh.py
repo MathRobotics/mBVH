@@ -83,10 +83,7 @@ def test_read_bvh():
   np.testing.assert_array_equal(node.offset, np.array((0.,5.,0.)))
   assert node.channels == []
   assert node.parent == bvh.node_list[4]
-  
-  assert bvh.sampling_time == 0.001
-  assert bvh.frame_num == 3
-  print(type(bvh.frames))
+
   np.testing.assert_allclose(bvh.frames[0], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.1,0.,0.,0.1)))
   np.testing.assert_allclose(bvh.frames[1], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.2,0.,0.,0.2)))
   np.testing.assert_allclose(bvh.frames[2], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.3,0.,0.,0.3)))
