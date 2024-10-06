@@ -31,6 +31,18 @@ class Bvh:
     self.frame_num = frame_num
     self.sampling_time = s_time
     self.frames = frames
+    
+    self.node_num = len(self.node_list)
+    
+  @staticmethod
+  def set_node(node_list, node, id, dof_index, offset, channels):
+    node_list.append(node)
+    id = id + 1
+    dof_index = dof_index + node.dof
+    offset = []
+    channels = []
+    
+    return node_list, id, dof_index, offset, channels, node
         
   @staticmethod
   def read_bvh(file):
@@ -44,19 +56,22 @@ class Bvh:
       if stack:
         text.append(re.split('\\s+', stack.strip()))
         stack = ''
-
-    frame_flag = [False, False]
-
+        
     node_list = []  
     node = None
-    joint_type = None
-    joint_name = None
-    p_id = -1
+    node_type = None
+    node_name = None
+    parent = None
     id = 0
     dof_index = 0
     offset = None
     channels = None
     frames = np.array([])
+    
+    node_init_flag = False
+    node_start_flag = False
+    frame_flag = [False, False]
+
     for item in text:
       if frame_flag[0] and frame_flag[1]:
         if not( len(frames) > 0 ):
@@ -66,23 +81,28 @@ class Bvh:
         continue
       key = item[0]
       if key == '{':
-        if p_id >= 0:
-          node = BvhNode(joint_name, joint_type, id, dof_index, offset, channels, node_list[p_id])
-        else:
-          node = BvhNode(joint_name, joint_type, id, dof_index, offset, channels)
-        node_list.append(node)
-        p_id = id
-        id = id + 1
-        dof_index = dof_index + node.dof
+        node_start_flag = True
+        node_init_flag = False
       elif key == '}':
-        p_id = p_id - 1
+        if not node_init_flag and node_start_flag:
+          node = BvhNode(node_name, node_type, id, dof_index, offset, channels, parent)
+          node_list, id, dof_index, offset, channels, parent = Bvh.set_node(node_list, node, id, dof_index, offset, channels)
+          node_init_flag = True
+        if parent:
+          parent = node_list[parent.id-1]
+          print(parent.id)
+        node_start_flag = False
       elif key == 'OFFSET':
-        offset = item[1:]
+        offset = np.array(item[1:], dtype='float32')
       elif key == 'CHANNELS':
-        channels = item[1:]
+        channels = item[2:]
       elif key == 'ROOT' or key == 'JOINT' or key == 'End':
-        joint_type = key
-        joint_name = item[1]
+        if node_start_flag:
+          node = BvhNode(node_name, node_type, id, dof_index, offset, channels, parent) 
+          node_list, id, dof_index, offset, channels, parent = Bvh.set_node(node_list, node, id, dof_index, offset, channels)
+          node_init_flag = True
+        node_type = key
+        node_name = item[1]
       elif key == 'MOTION':
         frame_flag[0] = True
       elif key == 'Frames:':
@@ -93,15 +113,15 @@ class Bvh:
         
     return Bvh(node_list, frame_num, sampling_time, frames)
   
-  def get_joint(self, joint_name):
+  def get_joint(self, node_name):
     for n in self.node_list:
-      if n.name == joint_name:
+      if n.name == node_name:
         return n
       
-  def get_joint_index(self, joint_name):
+  def get_joint_index(self, node_name):
     index = 0
     for n in self.node_list:
-      if n.name == joint_name:
+      if n.name == node_name:
         return n
       index = index + 1
       
