@@ -84,8 +84,8 @@ def test_read_bvh():
   assert node.channels == []
   assert node.parent == bvh.node_list[4]
 
-  np.testing.assert_allclose(bvh.frames[0], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.1,0.,0.,0.1)))
-  np.testing.assert_allclose(bvh.frames[1], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.2,0.,0.,0.2)))
-  np.testing.assert_allclose(bvh.frames[2], np.array((0.,0.,0.,0.,0.,0.,0.,0.,0.3,0.,0.,0.3)))
+  np.testing.assert_allclose(bvh.frames[0], np.array((0,0,0,0,0,0,0,0,0.1,0,0,0.1,0,0,0.1)))
+  np.testing.assert_allclose(bvh.frames[1], np.array((0,0,0,0,0,0,0,0,0.2,0,0,0.2,0,0,0.2)))
+  np.testing.assert_allclose(bvh.frames[2], np.array((0,0,0,0,0,0,0,0,0.3,0,0,0.3,0,0,0.3)))
   
   
