@@ -64,7 +64,6 @@ class Bvh:
         continue
       key = item[0]
       if key == '{':
-        dof = len(channels)
         if p_id >= 0:
           node = BvhNode(joint_name, joint_type, id, dof_index, offset, channels, node_list[p_id])
         else:
@@ -72,7 +71,7 @@ class Bvh:
         node_list.append(node)
         p_id = id
         id = id + 1
-        dof_index = dof_index + dof
+        dof_index = dof_index + node.dof
       elif key == '}':
         p_id = p_id - 1
       elif key == 'OFFSET':
