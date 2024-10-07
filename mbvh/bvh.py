@@ -131,10 +131,13 @@ class Bvh:
         return n.id
     warnings.warn(f"Warning: Node '{node_name}' is not recognized.", UserWarning)
     return 0
+  
+  def get_node_dof_index(self, node_name):
     for n in self.node_list:
       if n.name == node_name:
-        return n
-      index = index + 1
+        return n.dof_index
+    warnings.warn(f"Warning: Node '{node_name}' is not recognized.", UserWarning)
+    return 0
       
   def get_node_frame(self, node, frame_index):
     return self.frames[frame_index][node.dof_index:node.dof_index+node.dof]
