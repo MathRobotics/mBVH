@@ -30,6 +30,9 @@ def test_read_bvh():
   
   assert bvh.node_num == 6
   
+  assert bvh.end_list[0].id == 3
+  assert bvh.end_list[1].id == 5
+  
   node = bvh.node_list[0]
   assert node.id == 0
   assert node.dof_index == 0
