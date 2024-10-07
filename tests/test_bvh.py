@@ -102,3 +102,15 @@ def test_get_joint():
   warnings.simplefilter('ignore')
   assert bvh.get_joint('root') == None
   assert bvh.get_joint('Site') == None
+
+def test_get_node_id():
+  with open('./test.bvh', 'r') as f:
+    bvh = Bvh.read_bvh(f)
+
+  assert bvh.get_node_id('root') == 0
+  assert bvh.get_node_id('joint1') == 1
+  assert bvh.get_node_id('joint2') == 2
+  assert bvh.get_node_id('joint3') == 4
+  
+  warnings.simplefilter('ignore')
+  assert bvh.get_node_id('aaa') == 0
