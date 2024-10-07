@@ -126,3 +126,28 @@ def test_get_node_dof_index():
   
   warnings.simplefilter('ignore')
   assert bvh.get_node_dof_index('aaa') == 0
+  
+def test_get_node_frame():
+  with open('./test.bvh', 'r') as f:
+    bvh = Bvh.read_bvh(f)
+    
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[0], 0),np.array((0,0,0,0,0,0)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[1], 0),np.array((0,0,0.1)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[2], 0),np.array((0,0,0.1)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[3], 0),np.array([], dtype='float32'))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[4], 0),np.array((0,0,0.1)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[5], 0),np.array([], dtype='float32'))
+  
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[0], 1),np.array((0,0,0,0,0,0)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[1], 1),np.array((0,0,0.2)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[2], 1),np.array((0,0,0.2)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[3], 1),np.array([], dtype='float32'))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[4], 1),np.array((0,0,0.2)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[5], 1),np.array([], dtype='float32'))
+
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[0], 2),np.array((0,0,0,0,0,0)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[1], 2),np.array((0,0,0.3)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[2], 2),np.array((0,0,0.3)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[3], 2),np.array([], dtype='float32'))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[4], 2),np.array((0,0,0.3)))
+  np.testing.assert_allclose(bvh.get_node_frame(bvh.node_list[5], 2),np.array([], dtype='float32'))
