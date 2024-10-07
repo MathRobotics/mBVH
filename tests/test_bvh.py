@@ -114,3 +114,15 @@ def test_get_node_id():
   
   warnings.simplefilter('ignore')
   assert bvh.get_node_id('aaa') == 0
+
+def test_get_node_dof_index():
+  with open('./test.bvh', 'r') as f:
+    bvh = Bvh.read_bvh(f)
+
+  assert bvh.get_node_dof_index('root') == 0
+  assert bvh.get_node_dof_index('joint1') == 6
+  assert bvh.get_node_dof_index('joint2') == 9
+  assert bvh.get_node_dof_index('joint3') == 12
+  
+  warnings.simplefilter('ignore')
+  assert bvh.get_node_dof_index('aaa') == 0
