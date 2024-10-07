@@ -125,17 +125,17 @@ class Bvh:
     warnings.warn(f"Warning: Joint '{joint_name}' is not recognized.", UserWarning)
     return None
       
-  def get_joint_index(self, node_name):
+  def get_node_index(self, node_name):
     index = 0
     for n in self.node_list:
       if n.name == node_name:
         return n
       index = index + 1
       
-  def get_joint_frame(self, node, frame_index):
+  def get_node_frame(self, node, frame_index):
     return self.frames[frame_index][node.dof_index:node.dof_index+node.dof]
 
-  def calc_joint_rel_frame(self, node, frame_index):
+  def calc_node_rel_frame(self, node, frame_index):
     rel_frame = np.identity(4)
     if node.dof > 0:
       frame_vec = self.frames[frame_index][node.dof_index:node.dof_index+node.dof]
