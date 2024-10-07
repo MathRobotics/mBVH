@@ -91,4 +91,14 @@ def test_read_bvh():
   np.testing.assert_allclose(bvh.frames[1], np.array((0,0,0,0,0,0,0,0,0.2,0,0,0.2,0,0,0.2)))
   np.testing.assert_allclose(bvh.frames[2], np.array((0,0,0,0,0,0,0,0,0.3,0,0,0.3,0,0,0.3)))
   
+def test_get_joint():
+  with open('./test.bvh', 'r') as f:
+    bvh = Bvh.read_bvh(f)
+
+  assert bvh.get_joint('joint1') == bvh.node_list[1]
+  assert bvh.get_joint('joint2') == bvh.node_list[2]
+  assert bvh.get_joint('joint3') == bvh.node_list[4]
   
+  warnings.simplefilter('ignore')
+  assert bvh.get_joint('root') == None
+  assert bvh.get_joint('Site') == None
