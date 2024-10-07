@@ -125,8 +125,12 @@ class Bvh:
     warnings.warn(f"Warning: Joint '{joint_name}' is not recognized.", UserWarning)
     return None
       
-  def get_node_index(self, node_name):
-    index = 0
+  def get_node_id(self, node_name):
+    for n in self.node_list:
+      if n.name == node_name:
+        return n.id
+    warnings.warn(f"Warning: Node '{node_name}' is not recognized.", UserWarning)
+    return 0
     for n in self.node_list:
       if n.name == node_name:
         return n
