@@ -1,4 +1,5 @@
 import re
+import warnings
 import numpy as np
 
 class BvhNode:
@@ -117,10 +118,12 @@ class Bvh:
         
     return Bvh(node_list, frame_num, sampling_time, frames)
   
-  def get_joint(self, node_name):
+  def get_joint(self, joint_name):
     for n in self.node_list:
-      if n.name == node_name:
+      if n.name == joint_name and n.type == 'JOINT':
         return n
+    warnings.warn(f"Warning: Joint '{joint_name}' is not recognized.", UserWarning)
+    return None
       
   def get_joint_index(self, node_name):
     index = 0
