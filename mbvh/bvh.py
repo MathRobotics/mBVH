@@ -1,8 +1,6 @@
 import re
 import numpy as np
 
-import mathrobo as mr
-
 class BvhNode:
   def __init__(self, name, type, id, dof_index, offset=None, channels=None, parent=None):
     self.name = name
@@ -142,11 +140,32 @@ class Bvh:
         elif node.channels[i] == 'Zposition':
           rel_pos[2] = frame_vec[i]
         elif node.channels[i] == 'Xrotation':
-          rel_rot = mr.euler_x(frame_vec[i]) @ rel_rot
+          rot = np.zeros((3,3))
+          theta = frame_vec[i]
+          rot[0,0] = 1
+          rot[1,1] = np.cos(theta)
+          rot[1,2] = -np.sin(theta)
+          rot[2,1] = np.sin(theta)
+          rot[2,2] = np.cos(theta)
+          rel_rot = rot @ rel_rot
         elif node.channels[i] == 'Yrotation':
-          rel_rot = mr.euler_y(frame_vec[i]) @ rel_rot
+          rot = np.zeros((3,3))
+          theta = frame_vec[i]
+          rot[0,0] = np.cos(theta)
+          rot[0,2] = np.sin(theta)
+          rot[1,1] = 1
+          rot[2,0] = -np.sin(theta)
+          rot[2,2] = np.cos(theta)
+          rel_rot = rot @ rel_rot
         elif node.channels[i] == 'Zrotation':
-          rel_rot = mr.euler_z(frame_vec[i]) @ rel_rot
+          rot = np.zeros((3,3))
+          theta = frame_vec[i]
+          rot[0,0] = np.cos(theta)
+          rot[0,1] = -np.sin(theta)
+          rot[1,0] = np.sin(theta)
+          rot[1,1] = np.cos(theta)
+          rot[2,2] = 1
+          rel_rot = rot @ rel_rot
 
       rel_frame[0:3,3] = rel_pos
       rel_frame[0:3,0:3] = rel_rot
