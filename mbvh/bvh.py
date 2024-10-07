@@ -31,6 +31,13 @@ class Bvh:
     self.frames = frames
     
     self.node_num = len(self.node_list)
+    self.set_end_list()
+    
+  def set_end_list(self):
+    self.end_list = []
+    for n in self.node_list:
+      if n.type == 'End':
+        self.end_list.append(n)
     
   @staticmethod
   def set_node(node_list, node, id, dof_index, offset, channels):
