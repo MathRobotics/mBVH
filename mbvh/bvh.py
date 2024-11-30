@@ -210,7 +210,7 @@ class Bvh:
         frame_list = self.kinematics(frame_index)
 
         fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+        ax = fig.add_subplot(111, projection="3d")
 
         # node positions
         all_positions = np.array([frame[:3, 3] for frame in frame_list])
@@ -223,18 +223,18 @@ class Bvh:
                     [frame_list[node.id][0, 3], frame_list[p_id][0, 3]],
                     [frame_list[node.id][1, 3], frame_list[p_id][1, 3]],
                     [frame_list[node.id][2, 3], frame_list[p_id][2, 3]],
-                    color="black"
+                    color="black",
                 )
 
         # get min and max bounds
-        epsilon = 1e-6 # set a small value
+        epsilon = 1e-6  # set a small value
         min_bounds = np.min(all_positions, axis=0) - epsilon
         max_bounds = np.max(all_positions, axis=0) + epsilon
 
         # set axes
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
         ax.set_xlim(min_bounds[0], max_bounds[0])
         ax.set_ylim(min_bounds[1], max_bounds[1])
         ax.set_zlim(min_bounds[2], max_bounds[2])
@@ -247,9 +247,9 @@ class Bvh:
             z_axis = frame[:3, 2]
 
             ax.scatter(*origin)
-            ax.quiver(*origin, *x_axis, color='r', length=0.5, normalize=True)
-            ax.quiver(*origin, *y_axis, color='g', length=0.5, normalize=True)
-            ax.quiver(*origin, *z_axis, color='b', length=0.5, normalize=True)
+            ax.quiver(*origin, *x_axis, color="r", length=0.5, normalize=True)
+            ax.quiver(*origin, *y_axis, color="g", length=0.5, normalize=True)
+            ax.quiver(*origin, *z_axis, color="b", length=0.5, normalize=True)
 
         # set axes equal
         def set_axes_equal(ax):
