@@ -127,12 +127,12 @@ class Bvh:
 
     def calc_relative_frame(self, node, frame_index):
         rel_frame = np.identity(4)
+        frame_values = self.frames[
+            frame_index, node.dof_index : node.dof_index + node.dof
+        ]
+        offset_pos, offset_rot = np.array(node.offset), np.identity(3)
+        rel_pos, rel_rot = np.zeros(3), np.identity(3)
         if node.dof > 0:
-            frame_values = self.frames[
-                frame_index, node.dof_index : node.dof_index + node.dof
-            ]
-            rel_pos, rel_rot = np.array(node.offset), np.identity(3)
-
             for i, channel in enumerate(node.channels):
                 value = frame_values[i]
                 if channel == "Xposition":
@@ -144,7 +144,9 @@ class Bvh:
                 elif channel in ["Xrotation", "Yrotation", "Zrotation"]:
                     rel_rot = self.apply_rotation(rel_rot, channel, value)
 
-            rel_frame[:3, :3], rel_frame[:3, 3] = rel_rot, rel_pos
+        rel_frame[:3, :3] = offset_rot @ rel_rot
+        rel_frame[:3, 3] = offset_pos + offset_rot @ rel_pos
+
         return rel_frame
 
     @staticmethod
