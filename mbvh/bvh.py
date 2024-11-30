@@ -132,8 +132,8 @@ class Bvh:
         frame_values = self.frames[
             frame_index, node.dof_index : node.dof_index + node.dof
         ]
-        offset_pos, offset_rot = np.array(node.offset), np.identity(3)
-        rel_pos, rel_rot = np.zeros(3), np.identity(3)
+        rel_pos = np.array(node.offset)
+        rel_rot = np.identity(3)
         if node.dof > 0:
             for i, channel in enumerate(node.channels):
                 value = frame_values[i]
@@ -146,15 +146,16 @@ class Bvh:
                 elif channel in ["Xrotation", "Yrotation", "Zrotation"]:
                     rel_rot = self.apply_rotation(rel_rot, channel, value)
 
-        rel_frame[:3, :3] = offset_rot @ rel_rot
-        rel_frame[:3, 3] = offset_pos + offset_rot @ rel_pos
+        rel_frame[:3, :3] = rel_rot
+        rel_frame[:3, 3] = rel_pos
 
         return rel_frame
 
     @staticmethod
     def apply_rotation(current_rot, channel, angle):
+        ragian = np.radians(angle)
         rot = np.eye(3)
-        c, s = np.cos(angle), np.sin(angle)
+        c, s = np.cos(ragian), np.sin(ragian)
         if channel == "Xrotation":
             rot[1:, 1:] = [[c, -s], [s, c]]
         elif channel == "Yrotation":
@@ -162,27 +163,27 @@ class Bvh:
             rot[0, 2], rot[2, 0] = s, -s
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
-        return rot @ current_rot
-    
+        return current_rot @ rot
+
     def node_kinematics(self, node, frame_index, frame_list):
         rel_frame = self.calc_relative_frame(node, frame_index)
         frame = frame_list[node.parent.id] @ rel_frame
         frame_list.append(frame)
 
-        if(node.children):
+        if node.children:
             for child in node.children:
                 self.node_kinematics(child, frame_index, frame_list)
-      
+
     def kinematics(self, frame_index):
         frame_list = []
         frame = self.calc_relative_frame(self.node_list[0], frame_index)
         frame_list.append(frame)
         node = self.node_list[0]
 
-        if(node.children):
+        if node.children:
             for child in node.children:
                 self.node_kinematics(child, frame_index, frame_list)
-        
+
         return frame_list
 
     def show_node_tree(self):
