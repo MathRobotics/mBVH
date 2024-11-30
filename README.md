@@ -37,6 +37,9 @@ file_content = file.read()
 bvh = Bvh.parse_bvh(file_content)
 
 bvh.show_node_tree()
+
+frame_index = 0
+bvh.plot_frame(frame_index)
 ```
 
 ## Testing
