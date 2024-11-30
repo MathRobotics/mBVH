@@ -162,6 +162,27 @@ class Bvh:
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
         return rot @ current_rot
+    
+    def node_kinematics(self, node, frame_index, frame_list):
+        rel_frame = self.calc_relative_frame(node, frame_index)
+        frame = frame_list[node.parent.id] @ rel_frame
+        frame_list.append(frame)
+
+        if(node.children):
+            for child in node.children:
+                self.node_kinematics(child, frame_index, frame_list)
+      
+    def kinematics(self, frame_index):
+        frame_list = []
+        frame = self.calc_relative_frame(self.node_list[0], frame_index)
+        frame_list.append(frame)
+        node = self.node_list[0]
+
+        if(node.children):
+            for child in node.children:
+                self.node_kinematics(child, frame_index, frame_list)
+        
+        return frame_list
 
     def show_node_tree(self):
         for node in self.node_list:
