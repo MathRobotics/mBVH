@@ -16,17 +16,12 @@ class BvhNode:
         self.parent = parent
         self.children = []
         if self.parent:
-            self.parent.add_child(self)
+            self.parent.children.append(self)
 
         if self.channels:
             self.dof = len(self.channels)
         else:
             self.dof = 0
-
-    def add_child(self, node):
-        node.parent = self
-        self.children.append(node)
-
 
 class Bvh:
     def __init__(self, node_list, frame_num, sampling_time, frames):
