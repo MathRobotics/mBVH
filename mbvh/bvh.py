@@ -2,6 +2,7 @@ import re
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 class BvhNode:
@@ -132,8 +133,8 @@ class Bvh:
         frame_values = self.frames[
             frame_index, node.dof_index : node.dof_index + node.dof
         ]
-        offset_pos, offset_rot = np.array(node.offset), np.identity(3)
-        rel_pos, rel_rot = np.zeros(3), np.identity(3)
+        rel_pos = np.array(node.offset)
+        rel_rot = np.identity(3)
         if node.dof > 0:
             for i, channel in enumerate(node.channels):
                 value = frame_values[i]
@@ -146,15 +147,16 @@ class Bvh:
                 elif channel in ["Xrotation", "Yrotation", "Zrotation"]:
                     rel_rot = self.apply_rotation(rel_rot, channel, value)
 
-        rel_frame[:3, :3] = offset_rot @ rel_rot
-        rel_frame[:3, 3] = offset_pos + offset_rot @ rel_pos
+        rel_frame[:3, :3] = rel_rot
+        rel_frame[:3, 3] = rel_pos
 
         return rel_frame
 
     @staticmethod
     def apply_rotation(current_rot, channel, angle):
+        ragian = np.radians(angle)
         rot = np.eye(3)
-        c, s = np.cos(angle), np.sin(angle)
+        c, s = np.cos(ragian), np.sin(ragian)
         if channel == "Xrotation":
             rot[1:, 1:] = [[c, -s], [s, c]]
         elif channel == "Yrotation":
@@ -162,27 +164,27 @@ class Bvh:
             rot[0, 2], rot[2, 0] = s, -s
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
-        return rot @ current_rot
-    
+        return current_rot @ rot
+
     def node_kinematics(self, node, frame_index, frame_list):
         rel_frame = self.calc_relative_frame(node, frame_index)
         frame = frame_list[node.parent.id] @ rel_frame
         frame_list.append(frame)
 
-        if(node.children):
+        if node.children:
             for child in node.children:
                 self.node_kinematics(child, frame_index, frame_list)
-      
+
     def kinematics(self, frame_index):
         frame_list = []
         frame = self.calc_relative_frame(self.node_list[0], frame_index)
         frame_list.append(frame)
         node = self.node_list[0]
 
-        if(node.children):
+        if node.children:
             for child in node.children:
                 self.node_kinematics(child, frame_index, frame_list)
-        
+
         return frame_list
 
     def show_node_tree(self):
@@ -209,7 +211,7 @@ class Bvh:
         frame_list = self.kinematics(frame_index)
 
         fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+        ax = fig.add_subplot(111, projection="3d")
 
         # node positions
         all_positions = np.array([frame[:3, 3] for frame in frame_list])
@@ -222,18 +224,18 @@ class Bvh:
                     [frame_list[node.id][0, 3], frame_list[p_id][0, 3]],
                     [frame_list[node.id][1, 3], frame_list[p_id][1, 3]],
                     [frame_list[node.id][2, 3], frame_list[p_id][2, 3]],
-                    color="black"
+                    color="black",
                 )
 
         # get min and max bounds
-        epsilon = 1e-6 # set a small value
+        epsilon = 1e-6  # set a small value
         min_bounds = np.min(all_positions, axis=0) - epsilon
         max_bounds = np.max(all_positions, axis=0) + epsilon
 
         # set axes
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
         ax.set_xlim(min_bounds[0], max_bounds[0])
         ax.set_ylim(min_bounds[1], max_bounds[1])
         ax.set_zlim(min_bounds[2], max_bounds[2])
@@ -246,9 +248,9 @@ class Bvh:
             z_axis = frame[:3, 2]
 
             ax.scatter(*origin)
-            ax.quiver(*origin, *x_axis, color='r', length=0.5, normalize=True)
-            ax.quiver(*origin, *y_axis, color='g', length=0.5, normalize=True)
-            ax.quiver(*origin, *z_axis, color='b', length=0.5, normalize=True)
+            ax.quiver(*origin, *x_axis, color="r", length=0.5, normalize=True)
+            ax.quiver(*origin, *y_axis, color="g", length=0.5, normalize=True)
+            ax.quiver(*origin, *z_axis, color="b", length=0.5, normalize=True)
 
         # set axes equal
         def set_axes_equal(ax):
@@ -261,5 +263,123 @@ class Bvh:
             ax.set_zlim(bounds[2])
 
         set_axes_equal(ax)
+
+        plt.show()
+
+    def create_animation(self, fixed_axis=True, save_path=None):
+        """
+        BVH data animation for display or save.
+
+        Args:
+            fixed_axis (bool): whether to fix the axis limits. If True, the axis limits are fixed to the minimum and maximum values of all node positions. If False, the axis limits are adjusted for each frame.
+            save_path (str): file path to save the animation (e.g. "animation.mp4"). None if not saving.
+        """
+
+        frame_range = range(self.frame_num)
+        epsilon = 1e-6
+
+        # plot settings
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+
+        # axis labels
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+
+        # parent-child lines
+        lines = []
+        for node in self.node_list:
+            if node.parent:
+                (line,) = ax.plot([], [], [], color="black")
+                lines.append(line)
+
+        # node positions and axes
+        scatters = []
+        quivers = {"x": [], "y": [], "z": []}
+        for _ in self.node_list:
+            scatter = ax.scatter([], [], [])
+            scatters.append(scatter)
+            for axis, color in zip(["x", "y", "z"], ["r", "g", "b"]):
+                quiver = ax.quiver(
+                    0, 0, 0, 0, 0, 0, color=color, length=0.5, normalize=True
+                )
+                quivers[axis].append(quiver)
+
+        # set axes equal
+        def set_axes_equal(ax):
+            limits = np.array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])
+            centers = np.mean(limits, axis=1)
+            max_range = np.max(np.abs(limits[:, 1] - limits[:, 0]))
+            bounds = np.array([centers - max_range / 2, centers + max_range / 2]).T
+            ax.set_xlim(bounds[0])
+            ax.set_ylim(bounds[1])
+            ax.set_zlim(bounds[2])
+
+        if fixed_axis:
+            all_positions = []
+
+            for i in frame_range:
+                frame_list = self.kinematics(i)
+                all_positions.extend([frame[:3, 3] for frame in frame_list])
+
+            all_positions = np.array(all_positions)
+            min_bounds = np.min(all_positions, axis=0) - epsilon
+            max_bounds = np.max(all_positions, axis=0) + epsilon
+
+            ax.set_xlim(min_bounds[0], max_bounds[0])
+            ax.set_ylim(min_bounds[1], max_bounds[1])
+            ax.set_zlim(min_bounds[2], max_bounds[2])
+
+            set_axes_equal(ax)
+
+        def update(frame_index):
+            # update node positions and axes
+            frame_list = self.kinematics(frame_index)
+
+            # update parent-child lines
+            for line, node in zip(lines, self.node_list):
+                if node.parent:
+                    p_id = node.parent.id
+                    line.set_data(
+                        [frame_list[node.id][0, 3], frame_list[p_id][0, 3]],
+                        [frame_list[node.id][1, 3], frame_list[p_id][1, 3]],
+                    )
+                    line.set_3d_properties(
+                        [frame_list[node.id][2, 3], frame_list[p_id][2, 3]]
+                    )
+
+            # update node positions and axes
+            for i, frame in enumerate(frame_list):
+                origin = frame[:3, 3]
+                x_axis = frame[:3, 0]
+                y_axis = frame[:3, 1]
+                z_axis = frame[:3, 2]
+
+                scatters[i]._offsets3d = (origin[0:1], origin[1:2], origin[2:3])
+                quivers["x"][i].set_segments([[[*origin], [*(origin + 0.5 * x_axis)]]])
+                quivers["y"][i].set_segments([[[*origin], [*(origin + 0.5 * y_axis)]]])
+                quivers["z"][i].set_segments([[[*origin], [*(origin + 0.5 * z_axis)]]])
+
+            # set axes
+            if not fixed_axis:
+                all_positions = np.array([frame[:3, 3] for frame in frame_list])
+                min_bounds = np.min(all_positions, axis=0) - epsilon
+                max_bounds = np.max(all_positions, axis=0) + epsilon
+                ax.set_xlim(min_bounds[0], max_bounds[0])
+                ax.set_ylim(min_bounds[1], max_bounds[1])
+                ax.set_zlim(min_bounds[2], max_bounds[2])
+                set_axes_equal(ax)
+
+            return lines + scatters + quivers["x"] + quivers["y"] + quivers["z"]
+
+        # create animation
+        ani = FuncAnimation(
+            fig, update, frames=frame_range, interval=self.sampling_time * 1000
+        )
+
+        # save animation
+        if save_path:
+            ani.save(save_path, writer="ffmpeg", fps=1/self.sampling_time)
 
         plt.show()
