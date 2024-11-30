@@ -23,6 +23,7 @@ class BvhNode:
         else:
             self.dof = 0
 
+
 class Bvh:
     def __init__(self, node_list, frame_num, sampling_time, frames):
         self.node_list = node_list
@@ -39,67 +40,67 @@ class Bvh:
 
     @staticmethod
     def parse_bvh(file_content):
-      text_lines = [
+        text_lines = [
             re.split(r"\s+", line.strip())
             for line in file_content.splitlines()
             if line.strip()
         ]
-          
-      node_list, frames = [], None
-      parent, offset, channels = None, None, None
-      node, node_type, node_name = None, None, None
-      id, dof_index = 0, 0
-      
-      node_start_flag = False
-      frame_flag = [False, False]
 
-      # Parse each line
-      for line in text_lines:
-        key = line[0]
+        node_list, frames = [], None
+        parent, offset, channels = None, None, None
+        node, node_type, node_name = None, None, None
+        id, dof_index = 0, 0
 
-        if frame_flag[0] and frame_flag[1]:
-            frame = np.array([line], dtype="float32")
-            if frames is None:
-                frames = frame
-            else:
-                frames = np.append(frames, frame, axis=0)
-            continue
+        node_start_flag = False
+        frame_flag = [False, False]
 
-        if key == '{':
-          node_start_flag = True
-        elif key == '}':
-          if node_start_flag:
-            node = BvhNode(
-                node_name, node_type, id, dof_index, offset, channels, parent
-            )
-            node_list, id, dof_index, offset, channels, parent = Bvh.update_node_list(
-                node_list, node, id, dof_index
-            )
-          if(parent):
-            parent = parent.parent
-          node_start_flag = False
-        elif key == 'OFFSET':
-          offset = np.array(line[1:], dtype='float32')
-        elif key == 'CHANNELS':
-          channels = line[2:]
-        elif key in ["ROOT", "JOINT", "End"]:
-          if node_start_flag:
-            node = BvhNode(
-                node_name, node_type, id, dof_index, offset, channels, parent
-            )
-            node_list, id, dof_index, offset, channels, parent = Bvh.update_node_list(
-                node_list, node, id, dof_index
-            )
-          node_type, node_name = key, line[1]
-        elif key == 'MOTION':
-          frame_flag[0] = True
-        elif key == 'Frames:':
-          frame_num = int(line[1])
-        elif key == 'Frame' and line[1] == 'Time:':
-          sampling_time = float(line[2])
-          frame_flag[1] = True
-          
-      return Bvh(node_list, frame_num, sampling_time, frames)
+        # Parse each line
+        for line in text_lines:
+            key = line[0]
+
+            if frame_flag[0] and frame_flag[1]:
+                frame = np.array([line], dtype="float32")
+                if frames is None:
+                    frames = frame
+                else:
+                    frames = np.append(frames, frame, axis=0)
+                continue
+
+            if key == "{":
+                node_start_flag = True
+            elif key == "}":
+                if node_start_flag:
+                    node = BvhNode(
+                        node_name, node_type, id, dof_index, offset, channels, parent
+                    )
+                    node_list, id, dof_index, offset, channels, parent = (
+                        Bvh.update_node_list(node_list, node, id, dof_index)
+                    )
+                if parent:
+                    parent = parent.parent
+                node_start_flag = False
+            elif key == "OFFSET":
+                offset = np.array(line[1:], dtype="float32")
+            elif key == "CHANNELS":
+                channels = line[2:]
+            elif key in ["ROOT", "JOINT", "End"]:
+                if node_start_flag:
+                    node = BvhNode(
+                        node_name, node_type, id, dof_index, offset, channels, parent
+                    )
+                    node_list, id, dof_index, offset, channels, parent = (
+                        Bvh.update_node_list(node_list, node, id, dof_index)
+                    )
+                node_type, node_name = key, line[1]
+            elif key == "MOTION":
+                frame_flag[0] = True
+            elif key == "Frames:":
+                frame_num = int(line[1])
+            elif key == "Frame" and line[1] == "Time:":
+                sampling_time = float(line[2])
+                frame_flag[1] = True
+
+        return Bvh(node_list, frame_num, sampling_time, frames)
 
     def get_joint(self, joint_name):
         for n in self.node_list:
@@ -161,7 +162,7 @@ class Bvh:
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
         return rot @ current_rot
-    
+
     def show_node_tree(self):
         for node in self.node_list:
             print(f"{node.id}: {node.name} ({node.type})")
