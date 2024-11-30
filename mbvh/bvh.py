@@ -161,3 +161,23 @@ class Bvh:
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
         return rot @ current_rot
+    
+    def show_node_tree(self):
+        for node in self.node_list:
+            print(f"{node.id}: {node.name} ({node.type})")
+            if node.parent:
+                print(f"  Parent: {node.parent.name}")
+            if node.children:
+                print("  Children:")
+                for child in node.children:
+                    print(f"    {child.name}")
+            if node.offset is not None:
+                print(f"  Offset: {node.offset}")
+            if node.channels:
+                print(f"  Channels: {node.channels}")
+            print()
+
+    def show_frame(self, frame_index):
+        for node in self.node_list:
+            print(f"{node.name}: {self.get_node_frame(node, frame_index)}")
+        print()
