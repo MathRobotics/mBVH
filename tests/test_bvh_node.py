@@ -1,5 +1,4 @@
 import numpy as np
-import mathrobo as mr
 from mbvh import *
 
 def test_init_default():
