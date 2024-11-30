@@ -50,7 +50,6 @@ class Bvh:
       node, node_type, node_name = None, None, None
       id, dof_index = 0, 0
       
-      # node_init_flag = False
       node_start_flag = False
       frame_flag = [False, False]
 
