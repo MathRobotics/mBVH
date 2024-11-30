@@ -69,10 +69,14 @@ class Bvh:
           node_start_flag = True
         elif key == '}':
           if node_start_flag:
-            node = BvhNode(node_name, node_type, id, dof_index, offset, channels, parent)
+            node = BvhNode(
+                node_name, node_type, id, dof_index, offset, channels, parent
+            )
             node_list, id, dof_index, offset, channels, parent = Bvh.update_node_list(
                 node_list, node, id, dof_index
             )
+          if(parent):
+            parent = parent.parent
           node_start_flag = False
         elif key == 'OFFSET':
           offset = np.array(line[1:], dtype='float32')
@@ -81,8 +85,8 @@ class Bvh:
         elif key in ["ROOT", "JOINT", "End"]:
           if node_start_flag:
             node = BvhNode(
-                        node_name, node_type, id, dof_index, offset, channels, parent
-                    )
+                node_name, node_type, id, dof_index, offset, channels, parent
+            )
             node_list, id, dof_index, offset, channels, parent = Bvh.update_node_list(
                 node_list, node, id, dof_index
             )
