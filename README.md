@@ -30,13 +30,16 @@ pip install .
 Here is a simple example of how to use the mBVH package to load a BVH file:
 
 ```python
-from mbvh.bvh import BVH
+from mbvh import *
 
-# Load a BVH file
-bvh = BVH('path/to/your/file.bvh')
+with open('path/to/your/file.bvh', 'r') as file:
+file_content = file.read()
+bvh = Bvh.parse_bvh(file_content)
 
-# Manipulate BVH data
-print(bvh.frames)
+bvh.show_node_tree()
+
+frame_index = 0
+bvh.plot_frame(frame_index)
 ```
 
 ## Testing
