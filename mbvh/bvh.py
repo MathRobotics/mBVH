@@ -1,6 +1,7 @@
 import re
 import warnings
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class BvhNode:
@@ -162,6 +163,27 @@ class Bvh:
         elif channel == "Zrotation":
             rot[:2, :2] = [[c, -s], [s, c]]
         return rot @ current_rot
+    
+    def node_kinematics(self, node, frame_index, frame_list):
+        rel_frame = self.calc_relative_frame(node, frame_index)
+        frame = frame_list[node.parent.id] @ rel_frame
+        frame_list.append(frame)
+
+        if(node.children):
+            for child in node.children:
+                self.node_kinematics(child, frame_index, frame_list)
+      
+    def kinematics(self, frame_index):
+        frame_list = []
+        frame = self.calc_relative_frame(self.node_list[0], frame_index)
+        frame_list.append(frame)
+        node = self.node_list[0]
+
+        if(node.children):
+            for child in node.children:
+                self.node_kinematics(child, frame_index, frame_list)
+        
+        return frame_list
 
     def show_node_tree(self):
         for node in self.node_list:
@@ -182,3 +204,62 @@ class Bvh:
         for node in self.node_list:
             print(f"{node.name}: {self.get_node_frame(node, frame_index)}")
         print()
+
+    def plot_frame(self, frame_index):
+        frame_list = self.kinematics(frame_index)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # node positions
+        all_positions = np.array([frame[:3, 3] for frame in frame_list])
+
+        # drop duplicate nodes
+        for node in self.node_list:
+            if node.parent:
+                p_id = node.parent.id
+                ax.plot(
+                    [frame_list[node.id][0, 3], frame_list[p_id][0, 3]],
+                    [frame_list[node.id][1, 3], frame_list[p_id][1, 3]],
+                    [frame_list[node.id][2, 3], frame_list[p_id][2, 3]],
+                    color="black"
+                )
+
+        # get min and max bounds
+        epsilon = 1e-6 # set a small value
+        min_bounds = np.min(all_positions, axis=0) - epsilon
+        max_bounds = np.max(all_positions, axis=0) + epsilon
+
+        # set axes
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_xlim(min_bounds[0], max_bounds[0])
+        ax.set_ylim(min_bounds[1], max_bounds[1])
+        ax.set_zlim(min_bounds[2], max_bounds[2])
+
+        # plot each frame
+        for frame in frame_list:
+            origin = frame[:3, 3]
+            x_axis = frame[:3, 0]
+            y_axis = frame[:3, 1]
+            z_axis = frame[:3, 2]
+
+            ax.scatter(*origin)
+            ax.quiver(*origin, *x_axis, color='r', length=0.5, normalize=True)
+            ax.quiver(*origin, *y_axis, color='g', length=0.5, normalize=True)
+            ax.quiver(*origin, *z_axis, color='b', length=0.5, normalize=True)
+
+        # set axes equal
+        def set_axes_equal(ax):
+            limits = np.array([ax.get_xlim3d(), ax.get_ylim3d(), ax.get_zlim3d()])
+            centers = np.mean(limits, axis=1)
+            max_range = np.max(np.abs(limits[:, 1] - limits[:, 0]))
+            bounds = np.array([centers - max_range / 2, centers + max_range / 2]).T
+            ax.set_xlim(bounds[0])
+            ax.set_ylim(bounds[1])
+            ax.set_zlim(bounds[2])
+
+        set_axes_equal(ax)
+
+        plt.show()
