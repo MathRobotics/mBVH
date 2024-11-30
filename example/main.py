@@ -3,7 +3,7 @@ import numpy as np
 from mbvh import *
 
 def node_kinematics(bvh, node, p_frame, frame_index, frame_list):
-  rel_frame = bvh.calc_joint_rel_frame(node, frame_index)
+  rel_frame = bvh.calc_relative_frame(node, frame_index)
   frame = p_frame @ rel_frame
   frame_list.append(frame)
 
